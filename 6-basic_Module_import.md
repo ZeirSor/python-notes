@@ -46,7 +46,7 @@
 ![image-20220912144155065](6-basic_Module_import.assets/image-20220912144155065.png)
 
 ### 2.1. `__init__.py 文件`
-
+- 通过`__all__`变量控制`import *`的行为
 ### 2.2. 导入包
 略
 
