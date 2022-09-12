@@ -263,9 +263,9 @@ print([i + 1 for i in my_list if abs(i) > 3])  # [5, -3, -4, 9]
 
 #### 3.1.2. `str.replace(str_in_str, new_str)`
 
-#### 3.1.3. `str.split(split_flag) -> list` 字符串分割
+#### 3.1.3. `str.split(split_flag) -> list` 字符串分割, 返回列表
 
-#### 3.1.4. `str.strip()` 字符串的规整，去前后控制
+#### 3.1.4. `str.strip()` 字符串的规整，去前后空格、换行符
 
 ```python
 my_str = '    zeir sor  '
