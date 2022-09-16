@@ -75,7 +75,7 @@ for 临时变量 in 待处理数据集:
 ## 6. `range`语句
 `range(num)`从0开始
 
-`range(start, end)`左开右闭
+`range(start, end)`左闭右开
 
 `range(start, end, step)`步长
 
