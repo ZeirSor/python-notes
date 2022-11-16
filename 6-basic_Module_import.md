@@ -1165,3 +1165,586 @@ def load_my_logging_cfg(name):
     return logger
 ```
 
+## 第三方模块
+
+### 2.1 requests模块
+
+可以帮我们实现用代码去模拟浏览器发送网络请求。
+
+```
+pip install requests
+```
+
+```python
+import requests
+
+requests.功能
+
+requests.get
+requests.post
+```
+
+#### 1.分析请求
+
+![image-20220718145243615](6-basic_Module_import.assets/image-20220718145243615-16685951942651.png)
+
+```python
+import requests
+
+res = requests.get(
+    url="https://www.zhihu.com/api/v4/comment_v5/answers/2515342016/root_comment?order_by=score&limit=20&offset=",
+    headers={
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0) Gecko/20100101 Firefox/102.0",
+    }
+)
+
+# 响应体
+res.encoding = 'utf-8'
+print(res.text)
+
+# 响应头
+print(res.headers)
+```
+
+```python
+import requests
+
+res = requests.get(
+    url="https://movie.douban.com/j/search_subjects?type=movie&tag=%E8%B1%86%E7%93%A3%E9%AB%98%E5%88%86&sort=recommend&page_limit=20&page_start=20",
+    headers={
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0) Gecko/20100101 Firefox/102.0",
+    }
+)
+
+# 响应体
+res.encoding = 'utf-8'
+print(res.text)
+
+# 响应头
+print(res.headers)
+```
+
+```python
+import requests
+
+for i in range(0,61,20):
+    res = requests.get(
+        url="https://movie.douban.com/j/search_subjects?type=movie&tag=%E8%B1%86%E7%93%A3%E9%AB%98%E5%88%86&sort=recommend&page_limit=20&page_start={}".format(i),
+        headers={
+            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0) Gecko/20100101 Firefox/102.0",
+        }
+    )
+
+    # 响应体
+    res.encoding = 'utf-8'
+    print(res.text)
+```
+
+返回的值是：JSON格式。
+
+```python
+import requests
+
+for i in range(0, 61, 20):
+    res = requests.get(
+        url="https://movie.douban.com/j/search_subjects?type=movie&tag=%E8%B1%86%E7%93%A3%E9%AB%98%E5%88%86&sort=recommend&page_limit=20&page_start={}".format(
+            i),
+        headers={
+            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0) Gecko/20100101 Firefox/102.0",
+        }
+    )
+
+    # 响应体
+    res.encoding = 'utf-8'
+    # print(res.text)
+    data_dict = res.json()
+
+    for ele in data_dict['subjects']:
+        id = ele['id']
+        title = ele['title']
+        url = ele['url']
+        print(id, title, url)
+```
+
+#### 练习题
+
+https://www.luffycity.com/actual-course
+
+```python
+import requests
+
+
+res = requests.get(
+    url="https://api.luffycity.com/api/v1/course/actual/?limit=12&offset=0&category_id=10"
+)
+
+print(res.text)
+print(res.json())
+```
+
+### 2.2 json和jsonp
+
+```python
+import requests
+
+
+res = requests.get(
+    url="https://api.luffycity.com/api/v1/course/actual/?limit=12&offset=0&category_id=10"
+)
+
+print(res.text)
+print(res.json())
+```
+
+```python
+import requests
+
+
+def jsonp_queryMoreNums(data_dict):
+    print(data_dict)
+    print(data_dict['code'])
+
+
+res = requests.get(
+    url="http://num.10010.com/NumApp/NumberCenter/qryNum?callback=jsonp_queryMoreNums&provinceCode=11&cityCode=110&advancePayLower=0&sortType=1&goodsNet=4&searchCategory=3&qryType=02&channel=B2C&numNet=186&groupKey=53271060&judgeType=1",
+    headers={
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0) Gecko/20100101 Firefox/102.0",
+    }
+)
+res.encoding = 'utf-8'
+eval(res.text)
+```
+
+### 2.3 HTML格式
+
+```html
+<div>
+    <div id='x9'>
+        <span class='c1'>中国</span>
+        <a id='xx'>联通</a>
+    </div>
+	<p>公司<a>联通</a></p>
+</div>
+```
+
+- 通过标签名字找
+- 直接通过id寻找、class寻找
+- 找到相关好找的标签，相对于号召的标签再去找相关其他标签。
+
+![image-20220718160225466](6-basic_Module_import.assets/image-20220718160225466-16685952288803.png)
+
+```
+pip install BeautifulSoup4
+```
+
+```python
+import requests
+from bs4 import BeautifulSoup
+
+res = requests.get(
+    url="https://www.autohome.com.cn/news/",
+    headers={
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0) Gecko/20100101 Firefox/102.0",
+    }
+)
+res.encoding = 'gb2312'
+
+# 第1步：将文本交给BeautifulSoup，让他帮我们结构化处理。
+soup = BeautifulSoup(res.text, features='html.parser')
+
+# 第2步：根据特点，利用  find  findall 找到相应的标签
+part_area = soup.find(name='div', attrs={"id": "auto-channel-lazyload-article"})
+
+# 所有的li标签 = [li,li,li]
+li_list_node = part_area.find_all(name='li')
+for li_node in li_list_node:
+    h3 = li_node.find(name='h3')
+    if not h3:
+        continue
+	
+    print(h3.text)
+	
+    # 找到标签，获取他的文本
+    p = li_node.find(name='p')
+    print(p.text)
+	
+    # 找到标签，获取属性  <img src='xxx' />
+    img = li_node.find(name='img')
+    print(img.attrs['src'])
+    print('-----------------')
+```
+
+
+
+#### 案例：获取编辑信息
+
+```python
+import os
+
+import requests
+from bs4 import BeautifulSoup
+
+res = requests.get(
+    url="https://www.autohome.com.cn/news/",
+    headers={
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0) Gecko/20100101 Firefox/102.0",
+    }
+)
+res.encoding = 'gb2312'
+soup = BeautifulSoup(res.text, features='html.parser')
+
+info = soup.find(name='ul', attrs={'id': "tagInfo"})
+
+li_list = info.find_all(name='li')
+for li in li_list:
+    div = li.find(name='div', attrs={"class": "editorname"})
+    a = div.find(name='a')
+    title = a.text
+
+    img = li.find(name='img')
+    url = "{}:{}".format("https", img.attrs['src'])
+    print(title, url)
+
+    res = requests.get(url=url)
+    # print(res.content)
+
+    file_name = "{}.jpg".format(title)
+    file_path = os.path.join('images', file_name)
+
+    with open(file_path, mode='wb') as f:
+        f.write(res.content)
+```
+
+
+
+#### 案例：联通商品商城
+
+http://s.10010.com/hebei/mobilelist-0-0-0-0-0-0-0-0-177-0-0-p2/
+
+```python
+import os
+import requests
+from bs4 import BeautifulSoup
+
+import requests
+
+res = requests.get(
+    url="http://s.10010.com/hebei/mobilelist-0-0-0-0-0-0-0-0-177-0-0-p2/"
+)
+
+soup = BeautifulSoup(res.text, features='html.parser')
+
+li_list_node = soup.find_all(name='li', attrs={'class': "goodsLi"})
+for li_node in li_list_node:
+    a = li_node.find(name='a', attrs={'class': "name"})
+    title = a.text
+
+    label = li_node.find(name="label", attrs={'class': "priceD"})
+    price = label.text
+
+    a2 = li_node.find(name="p", attrs={"class": "evalNum"}).find(name='a')
+    comment = a2.text
+
+    print(title)
+    print(price)
+    print(comment)
+    print('------------')
+```
+
+```python
+import re
+from bs4 import BeautifulSoup
+import requests
+
+res = requests.get(
+    url="http://s.10010.com/hebei/mobilelist-0-0-0-0-0-0-0-0-177-0-0-p2/"
+)
+
+soup = BeautifulSoup(res.text, features='html.parser')
+
+li_list_node = soup.find_all(name='li', attrs={'class': "goodsLi"})
+for li_node in li_list_node:
+    a = li_node.find(name='a', attrs={'class': "name"})
+    title = a.text
+
+    label = li_node.find(name="label", attrs={'class': "priceD"})
+    price = label.text
+    price_int = int(re.findall(r"￥(\d+)", price)[0])
+
+    a2 = li_node.find(name="p", attrs={"class": "evalNum"}).find(name='a')
+    comment = a2.text
+    comment_count = int(re.findall(r"已有(\d+)人评价", comment)[0])
+
+    print(title)
+    print(price, price_int)
+    print(comment, comment_count)
+    print('------------')
+```
+
+### 小结
+
+- 安装第三方模块
+
+```
+pip install 模块名称
+```
+
+- requests，模拟浏览器发送请求。
+
+- bs4，解析HTML格式的数据。
+
+- 其他
+
+  - JSON格式
+
+```
+{"code":"1111"}
+```
+
+  - JSONP格式
+
+```
+xxxxxx({"code":"1111"})
+```
+
+  - HTML格式
+
+## 虚拟环境
+
+```
+C:\Python39
+	python.exe
+	Script
+		pip.exe
+	Lib
+		random.py
+		re.py
+		site-packages
+			...
+```
+
+注意：如果我们在开发过程中不会用到第三方模块。
+
+虚拟环境，为我们创建n个python解释器。
+
+```python
+C:\Python39
+	python.exe
+	Script
+		pip.exe
+	Lib
+		random.py
+		re.py
+		site-packages
+			flask==2.1
+            requests
+            bs4
+            
+----------------------------
+E:\env\crm   -> 项目A
+    python.exe
+    Script
+		pip.exe
+	Lib
+    	site-packages
+        	flask==1.5
+            flask==1.5
+            flask==1.5
+            
+pip freeze > requirements.txt
+----------------------------
+E:\env\stark   -项目B
+    python.exe
+    Script
+		pip.exe
+	Lib
+    	site-packages
+        	flask==1.8
+```
+
+一般情况下，自己开发用系统解释器完全没问题。
+
+如果以后做项目，  项目A+虚拟环境。
+
+### 1.1 命令行
+
+底层用的都是命令，以后做项目部署Linux，必须只能用命令。
+
+- 安装支持虚拟环境的工具 vritualenv
+
+  ```
+  pip install virtualenv
+  ```
+
+  ```
+  C:\Python39
+  	python.exe
+  	Script
+  		pip.exe
+  		virtualenv.exe
+  	Lib
+  		random.py
+  		re.py
+  		site-packages
+  			flask==2.1
+              requests
+              bs4
+              virtualenv
+  ```
+
+- virtualenv工具创建虚拟环境
+
+  ```
+  >>>F:
+  >>>cd envs
+  >>>virtualenv crm --python=python3.9
+  >>>virtualenv F:\envs\crm --python=python3.9
+  ```
+
+  ```
+  F:\envs\crm
+      python.exe
+      Scripts
+  		pip.exe
+  		activate.exe
+  	Lib
+      	site-packages
+      		...
+  ```
+
+- 激活虚拟环境
+
+  ```
+  >>>F:
+  >>>cd envs\crm\Scripts
+  >>>activate.exe
+  ```
+
+  ```
+  >>>source crm/bin/activate
+  ```
+
+  ```
+  (crm) wupeiqi@192 xxxxxxxxx %
+  ```
+
+- 执行操作
+
+  ```
+  >>>python
+  >>>python  app.py
+  >>>pip install xxx
+  ```
+
+  ```
+  >>>pip install django
+  ```
+
+  ```
+  F:\envs\crm
+      python.exe
+      Scripts
+  		pip.exe
+  		activate.exe
+  	Lib
+      	site-packages
+      		django
+  ```
+
+- 退出虚拟环境
+
+  ```
+  >>>deactivate
+  ```
+
+假设你的项目写在了D:\code\crm
+
+```
+D:\code\crm
+	utils
+		..
+	app.py
+```
+
+```
+>>>F:
+>>>cd crm\Scripts
+>>>activate
+(crm)>>>D:
+(crm)>>>cd code\crm\
+(crm)>>>python app.py
+```
+
+### 1.2 Pycharm
+
+只能在开发阶段使用。
+
+![image-20220719094825808](6-basic_Module_import.assets/image-20220719094825808-16685953748355.png)
+
+没有自动激活的话，把终端改成`cmd`
+
+一般情况下，不会这样来划分目录：
+
+```
+项目：D:\code\cj
+环境：F:\env\stark
+```
+
+```
+项目：D:\code\cj
+环境：F:\env\cj
+```
+
+推荐：
+
+```
+项目：D:\code\cj
+环境：D:\code\cj\venv
+```
+
+推荐：
+
+```
+项目：D:\code\cj
+环境：D:\code\cj\.venv
+```
+
+### 1.3 常见问题
+
+#### 1.3.1 我给你代码
+
+- 【不行】仅代码
+
+- 【不行】代码 + 虚拟环境 
+
+- 【可行】代码 + requirements.txt
+
+  ```
+  pip freeze > requirements.txt
+  ```
+
+  注意：排除虚拟环境否则文件就会比较大。
+
+- 在公司中一般都会基于git来进行协同开发和相互给代码。
+
+
+
+#### 1.3.2 你给我代码
+
+##### 1.pycharm的打开
+
+##### 2.创建虚拟环境
+
+![image-20220719102924185](6-basic_Module_import.assets/image-20220719102924185-16685954699547.png)
+
+![image-20220719103006322](6-basic_Module_import.assets/image-20220719103006322-16685954796859.png)
+
+##### 3.安装依赖包
+
+```
+pip install -r requirements.txt
+```
+
+![image-20220719103214181](6-basic_Module_import.assets/image-20220719103214181-166859550159911.png)
+
+-   自己安装新的包后要养成好习惯，执行`pip freeze > requirements.txt`更新`requirements.txt`
