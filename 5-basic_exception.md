@@ -86,5 +86,63 @@ finally:
 	f.close()
 ```
 
+-   `try`里面遇到`return` , 会先往下执行`finally`, 然后再执行`return`
+
 ## 3. 异常具有传递性
 
+## 4. 抛出异常
+
+`raise XXXexception()`
+
+```python
+def run(handler):
+    try:
+        num = handler()
+        print(num)
+        return "成功"
+    except Exception as e:
+        return "错误"
+    finally:
+        print("END")
+
+        print("结束")
+
+
+        res = run(lambda: 123) 
+        print(res)
+```
+
+```python
+>>> 123
+>>> END
+>>> 成功
+```
+
+```python
+def func():
+    print(666)
+    return "成功"
+
+def run(handler):
+    try:
+        num = handler()
+        print(num)
+        return func()
+    except Exception as e:
+        return "错误"
+    finally:
+        print("END")
+
+        print("结束")
+
+
+        res = run(lambda: 123) 
+        print(res)
+```
+
+```python
+>>> 123
+>>> 666
+>>> END
+>>> 成功
+```

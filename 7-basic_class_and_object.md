@@ -216,3 +216,244 @@ print(ClassDemo())  # <__main__.ClassDemo object at 0x0000021EFB1D1760>
 
 -   不以`Object`为基类的类, 不推荐使用
 
+## 9. 反射
+
+反射，提供了一种更加灵活的方式让你可以实现去 对象 中操作成员（以字符串的形式去 `对象` 中进行成员的操作）。
+
+```python
+class Person(object):
+    
+    def __init__(self,name,wx):
+        self.name = name
+        self.wx = wx
+	
+    def show(self):
+        message = "姓名{}，微信：{}".format(self.name,self.wx)
+        
+        
+user_object = Person("武沛齐","wupeiqi666")
+
+
+# 对象.成员 的格式去获取数据
+user_object.name
+user_object.wx
+user_object.show()
+
+# 对象.成员 的格式无设置数据
+user_object.name = "吴培期"
+```
+
+```python
+user = Person("武沛齐","wupeiqi666")
+
+# getattr 获取成员
+getattr(user,"name") # user.name
+getattr(user,"wx")   # user.wx
+
+
+method = getattr(user,"show") # user.show
+method()
+# 或
+getattr(user,"show")()
+
+# setattr 设置成员
+setattr(user, "name", "吴培期") # user.name = "吴培期"
+```
+
+Python中提供了4个内置函数来支持反射：
+
+- getattr，去对象中获取成员
+
+```
+  v1 = getattr(对象,"成员名称")
+  v2 = getattr(对象,"成员名称", 不存在时的默认值)
+```
+
+- setattr，去对象中设置成员
+
+```
+  setattr(对象,"成员名称",值)
+```
+
+- hasattr，对象中是否包含成员
+
+```
+  v1 = hasattr(对象,"成员名称") # True/False
+```
+
+- delattr，删除对象中的成员
+
+```
+  delattr(对象,"成员名称")
+```
+
+以后如果再遇到 对象.成员 这种编写方式时，均可以基于反射来实现。
+
+案例：
+
+```python
+class Account(object):
+
+    def login(self):
+        pass
+
+    def register(self):
+        pass
+
+    def index(self):
+        pass
+
+    
+def run(self):
+    name = input("请输入要执行的方法名称：") # index register login xx run ..
+    
+    account_object = Account()
+    method = getattr(account_object, name,None) # index = getattr(account_object,"index")
+    
+    if not method:
+        print("输入错误")
+        return 
+    method()
+```
+
+### 4.1 一些皆对象
+
+在Python中有这么句话：`一切皆对象`。 每个对象的内部都有自己维护的成员。
+
+- 对象是对象
+
+```python
+class Person(object):
+
+    def __init__(self,name,wx):
+        self.name = name
+        self.wx = wx
+
+        def show(self):
+            message = "姓名{}，微信：{}".format(self.name,self.wx)
+
+
+            user_object = Person("武沛齐","wupeiqi666")
+            user_object.name
+```
+
+- 类是对象
+
+```python
+class Person(object):
+    title = "武沛齐"
+
+    Person.title
+    # Person类也是一个对象（平时不这么称呼）
+```
+
+- 模块是对象
+
+```python
+import re
+
+re.match
+# re模块也是一个对象（平时不这么称呼）。
+```
+
+
+由于反射支持以字符串的形式去对象中操作成员【等价于 对象.成员 】，所以，基于反射也可以对类、模块中的成员进行操作。
+
+简单粗暴：只要看到 xx.oo 都可以用反射实现。
+
+```python
+class Person(object):
+    title = "武沛齐"
+
+v1 = Person.title
+print(v1)
+v2 = getattr(Person,"title")
+print(v2)
+```
+
+```python
+import re
+
+v1 = re.match("\w+","dfjksdufjksd")
+print(v1)
+
+func = getattr(re,"match")
+v2 = func("\w+","dfjksdufjksd")
+print(v2)
+```
+
+### 4.2 import_module + 反射
+
+在Python中如果想要导入一个模块，可以通过import语法导入；企业也可以通过字符串的形式导入。
+
+示例一：
+
+```python
+# 导入模块
+import random
+
+v1 = random.randint(1,100)
+```
+
+```python
+# 导入模块
+from importlib import import_module
+
+m = import_module("random")
+
+v1 = m.randint(1,100)
+```
+
+示例二：
+
+```python
+# 导入模块exceptions
+from requests import exceptions as m
+```
+
+```python
+# 导入模块exceptions
+from importlib import import_module
+m = import_module("requests.exceptions")
+```
+
+示例三：
+
+```python
+# 导入模块exceptions，获取exceptions中的InvalidURL类。
+from requests.exceptions import InvalidURL
+```
+
+```python
+# 错误方式
+from importlib import import_module
+m = import_module("requests.exceptions.InvalidURL") # 报错，import_module只能导入到模块级别。
+```
+
+```python
+# 导入模块
+from importlib import import_module
+m = import_module("requests.exceptions")
+# 去模块中获取类
+cls = m.InvalidURL
+```
+
+在很多项目的源码中都会有 `import_module` 和 `getattr` 配合实现根据字符串的形式导入模块并获取成员，例如：
+
+```python
+from importlib import import_module
+
+path = "openpyxl.utils.exceptions.InvalidFileException"
+
+module_path,class_name = path.rsplit(".",maxsplit=1) # "openpyxl.utils.exceptions"   "InvalidFileException"
+
+module_object = import_module(module_path)
+
+cls = getattr(module_object,class_name)
+
+print(cls)
+```
+
+我们在开发中也可以基于这个来进行开发，提高代码的可扩展性，例如：请在项目中实现一个发送 短信、微信 的功能。
+
+参考示例代码中的：auto_message 项目。
