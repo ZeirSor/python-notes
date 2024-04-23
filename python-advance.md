@@ -729,3 +729,88 @@ cq.display()  # 输出: [2, 3, 4]
 ```
 
 在上述示例中，`CircularQueue` 类使用 `deque` 实现了一个循环队列，保持了固定长度，当队列满时，新的元素入队会导致最老的元素出队。这展示了 `deque` 的一个常见应用场景。
+
+## 拆分含有多种分隔符的字符串
+
+### 方法 1：使用循环和 `map` 函数
+
+```python
+def split_str_by_seps(s, seps):
+    # 初始时，将原始字符串放入结果列表
+    res = [s]
+    
+    # 遍历每个分隔符
+    for sep in seps:
+        t = []  # 临时列表，用于存储拆分后的字符串
+        # 对结果列表中的每个字符串应用split，并将结果扩展到临时列表中
+        list(map(lambda ss: t.extend(ss.split(sep)), res))
+        res = t  # 更新结果列表为临时列表
+    
+    return res
+
+result_1 = split_str_by_seps(s, filter_list)
+print(result_1)
+```
+
+- `res`: 初始化为包含原始字符串的列表。
+- 循环遍历每个分隔符 `sep`。
+- 通过 `map` 函数对结果列表中的每个字符串应用 `split` 方法，并将拆分后的部分扩展到临时列表 `t` 中。
+- 更新结果列表为临时列表。
+- 重复上述步骤，直到遍历所有分隔符。
+- 返回最终的拆分结果列表。
+
+### 方法 2：使用 `functools.reduce` 和 `map` 函数
+
+```python
+from functools import reduce
+
+split_str_by_seps_2 = \
+    lambda s, seps: \
+        reduce(
+            lambda l, sep: \
+                sum(
+                    map(lambda ss: ss.split(sep), l), []
+                ), 
+            seps, 
+            [s]
+        )
+
+result_2 = split_str_by_seps_2(s, filter_list)
+print(result_2)
+```
+
+- 使用 `lambda` 定义匿名函数 `split_str_by_seps_2`。
+- 使用 `reduce` 函数迭代地应用每个分隔符，将字符串拆分。
+- 使用 `map` 函数对结果列表中的每个字符串应用 `split` 方法。
+- 使用 `sum` 函数将所有拆分后的部分合并为一个列表。
+- 返回最终的拆分结果列表。
+
+### 方法 3：使用正则表达式 `re.split`
+
+```python
+import re
+
+result_3 = re.split('[;,.|\t]+', s)
+print(result_3)
+```
+
+- 使用 `re.split` 函数，通过正则表达式 `[;,.|\t]+` 指定分隔符。
+- 返回最终的拆分结果列表。
+
+总的来说，这三种方法都是通过不同的方式来实现字符串的拆分，方法3采用了正则表达式，而方法1和方法2则通过循环和函数的迭代。选择其中一种方法取决于具体的需求和个人的偏好。
+
+## 如何判断字符串a是否以字符串b开头或结尾
+
+```python
+file_name = 'aaa.py'
+file_name.startswith('a')
+file_name.endswith('.py')
+```
+
+## 拼接多个字符串
+
+```python
+l = ['sadf', 'aer343', '323g vf']
+''.join(l)
+```
+
